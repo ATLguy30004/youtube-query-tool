@@ -2,8 +2,8 @@ import streamlit as st
 from youtube_transcript_api import YouTubeTranscriptApi
 from transformers import pipeline
 
-# Load Hugging Face question-answering pipeline
-qa_pipeline = pipeline("question-answering", model="distilbert-base-uncased-distilled-squad")
+# Load Hugging Face question-answering pipeline with a better model
+qa_pipeline = pipeline("question-answering", model="bert-large-uncased-whole-word-masking-finetuned-squad")
 
 # Function to fetch the transcript from a YouTube video
 def get_transcript(video_url):
@@ -23,7 +23,7 @@ def query_transcript(transcript, question):
         return f"Error with open-source model: {e}"
 
 # Streamlit User Interface
-st.title("YouTube Video Query Tool (Open Source)")
+st.title("YouTube Video Query Tool (Improved Open Source)")
 
 video_url = st.text_input("Enter YouTube Video URL:")
 question = st.text_input("Ask a question about the video:")
