@@ -1,10 +1,11 @@
 import streamlit as st
 from youtube_transcript_api import YouTubeTranscriptApi
-import openai
+from transformers import pipeline
 
-# OpenAI API Key (replace with your API key)
-openai.api_key = "YOUR_API_KEY"
+# Load Hugging Face question-answering pipeline
+qa_pipeline = pipeline("question-answering", model="distilbert-base-uncased-distilled-squad")
 
+# Function to fetch the transcript from a YouTube video
 def get_transcript(video_url):
     try:
         video_id = video_url.split("v=")[1]
@@ -13,21 +14,17 @@ def get_transcript(video_url):
     except Exception as e:
         return f"Error fetching transcript: {e}"
 
-def query_chatgpt(transcript, question):
+# Function to query the Hugging Face model
+def query_transcript(transcript, question):
     try:
-        response = openai.ChatCompletion.create(
-            model="gpt-3.5-turbo",
-            messages=[
-                {"role": "system", "content": "You are an assistant that answers questions based on video transcripts."},
-                {"role": "user", "content": f"Transcript: {transcript}\n\nQuestion: {question}"}
-            ]
-        )
-        return response['choices'][0]['message']['content']
+        result = qa_pipeline(context=transcript, question=question)
+        return result['answer']
     except Exception as e:
-        return f"Error with ChatGPT API: {e}"
+        return f"Error with open-source model: {e}"
 
-# Streamlit UI
-st.title("YouTube Video Query Tool")
+# Streamlit User Interface
+st.title("YouTube Video Query Tool (Open Source)")
+
 video_url = st.text_input("Enter YouTube Video URL:")
 question = st.text_input("Ask a question about the video:")
 
@@ -35,7 +32,7 @@ if video_url and question:
     with st.spinner("Fetching transcript and querying..."):
         transcript = get_transcript(video_url)
         if "Error" not in transcript:
-            answer = query_chatgpt(transcript, question)
+            answer = query_transcript(transcript, question)
             st.text_area("Transcript:", transcript, height=200)
             st.success("Answer:")
             st.write(answer)
